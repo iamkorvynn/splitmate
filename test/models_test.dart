@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:splitmate/models/expense.dart';
 import 'package:splitmate/models/group.dart';
 import 'package:splitmate/models/member.dart';
+import 'package:splitmate/models/settlement.dart';
 
 void main() {
   group('Group', () {
@@ -53,6 +54,38 @@ void main() {
       final copy = member.copyWith(name: 'Asha R');
       expect(copy.name, 'Asha R');
       expect(copy.groupId, 1);
+    });
+  });
+
+  group('Expense', () {
+    test('toMap/fromMap round-trips without shares', () {
+      const expense = Expense(
+        id: 3,
+        groupId: 1,
+        title: 'Dinner',
+        amountPaise: 30000,
+        paidByMemberId: 1,
+        createdAtMillis: 1700000000000,
+      );
+      final restored = Expense.fromMap(expense.toMap());
+      expect(restored.id, 3);
+      expect(restored.title, 'Dinner');
+      expect(restored.amountPaise, 30000);
+      expect(restored.paidByMemberId, 1);
+    });
+
+    test('shares are preserved by copyWith', () {
+      const expense = Expense(
+        groupId: 1,
+        title: 'Taxi',
+        amountPaise: 10000,
+        paidByMemberId: 2,
+        createdAtMillis: 5,
+        shares: {1: 5000, 2: 5000},
+      );
+      final copy = expense.copyWith(title: 'Cab');
+      expect(copy.title, 'Cab');
+      expect(copy.shares, {1: 5000, 2: 5000});
     });
   });
 }
