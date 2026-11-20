@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:splitmate/main.dart';
+import 'package:splitmate/screens/add_group_screen.dart';
 import 'package:splitmate/services/database_helper.dart';
 
 Future<void> _settle(WidgetTester tester) async {
@@ -9,6 +10,18 @@ Future<void> _settle(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 500));
   await tester.pump(const Duration(milliseconds: 500));
   await tester.pump();
+}
+
+/// Waits until the add-group screen has popped (the save is async and
+/// can be slow when the machine is loaded), then settles the home list.
+Future<void> _waitForGroupCreated(WidgetTester tester) async {
+  for (var i = 0;
+      i < 10 && find.byType(AddGroupScreen).evaluate().isNotEmpty;
+      i++) {
+    await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+  await _settle(tester);
 }
 
 void main() {
@@ -42,7 +55,7 @@ void main() {
       await tester.pump();
     }
     await tester.tap(find.text('Create group'));
-    await _settle(tester);
+    await _waitForGroupCreated(tester);
     expect(find.text(name), findsOneWidget);
   }
 
