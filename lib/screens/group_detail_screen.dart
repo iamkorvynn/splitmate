@@ -131,6 +131,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   }
 
   Future<void> _openAddExpense() async {
+    if (_members.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add members to the group first')),
+      );
+      return;
+    }
     final added = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => AddExpenseScreen(
@@ -417,7 +423,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 ],
               ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: _openAddExpense,
+          onPressed: _loading ? null : _openAddExpense,
           icon: const Icon(Icons.add),
           label: const Text('Add expense'),
         ),
