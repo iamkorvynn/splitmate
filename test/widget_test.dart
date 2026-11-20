@@ -32,9 +32,11 @@ void main() {
   }
 
   Future<void> pumpSettled(WidgetTester tester) async {
-    await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
-    // Advance the route transition animation (fake time).
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.runAsync(() => Future.delayed(const Duration(seconds: 1)));
+    // Advance the route transition animation (fake time) and let the
+    // outgoing route finish popping.
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.pump();
   }
 
