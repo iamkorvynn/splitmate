@@ -23,16 +23,16 @@ void main() {
 
   // The home screen shows a CircularProgressIndicator while the local
   // database loads, and that spinner animates forever, so pumpAndSettle
-  // would never return. Pump with explicit durations instead.
+  // would never return. Use runAsync so the real (ffi) database work can
+  // complete, then pump to render the result.
   Future<void> pumpHome(WidgetTester tester) async {
     await tester.pumpWidget(const SplitMateApp());
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.runAsync(() => Future.delayed(const Duration(seconds: 1)));
     await tester.pump();
   }
 
   Future<void> pumpSettled(WidgetTester tester) async {
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 500)));
     await tester.pump();
   }
 
