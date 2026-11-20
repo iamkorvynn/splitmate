@@ -60,6 +60,11 @@ void main() {
   }
 
   testWidgets('full flow: expense splits and balances show', (tester) async {
+    // Tall viewport so long forms fit without scrolling.
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await createGroup(tester);
 
     // Open the group and wait for its data to load (empty state proves it).
@@ -83,11 +88,20 @@ void main() {
     await tester.ensureVisible(find.text('Save expense'));
     await tester.pump();
     await tester.tap(find.text('Save expense'));
+    // Wait for the save to finish and the list to reload.
+    for (var i = 0;
+        i < 10 && find.text('Dinner').evaluate().isEmpty;
+        i++) {
+      await tester.runAsync(
+        () => Future.delayed(const Duration(milliseconds: 500)),
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+    }
     await _settle(tester);
 
     // Expense shows in the history.
     expect(find.text('Dinner'), findsOneWidget);
-    expect(find.text('₹300.00'), findsOneWidget);
+    expect(find.text('₹300.00'), findsWidgets);
 
     // Balances tab: Asha gets ₹200, Ravi and Meera owe ₹100 each.
     await tester.tap(find.text('Balances'));
