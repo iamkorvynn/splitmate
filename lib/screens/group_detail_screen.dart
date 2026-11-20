@@ -207,6 +207,33 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     );
   }
 
+  Future<void> _deleteSettlement(Settlement settlement) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete settlement?'),
+        content: Text(
+          'This ${formatPaise(settlement.amountPaise)} payment will be '
+          'removed and balances recalculated.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await DatabaseHelper.instance.deleteSettlement(settlement.id!);
+      _loadAll();
+    }
+  }
+
   Future<void> _deleteExpense(Expense expense) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -382,6 +409,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         _SettlementsTab(
                           settlements: _settlements,
                           memberNames: _memberNames,
+                          onDelete: _deleteSettlement,
                         ),
                       ],
                     ),
@@ -623,10 +651,12 @@ class _BalancesTab extends StatelessWidget {
 class _SettlementsTab extends StatelessWidget {
   final List<Settlement> settlements;
   final Map<int, String> memberNames;
+  final void Function(Settlement) onDelete;
 
   const _SettlementsTab({
     required this.settlements,
     required this.memberNames,
+    required this.onDelete,
   });
 
   @override
@@ -660,9 +690,19 @@ class _SettlementsTab extends StatelessWidget {
           subtitle: Text(
             '${date.day}/${date.month}/${date.year}',
           ),
-          trailing: Text(
-            formatPaise(settlement.amountPaise),
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                formatPaise(settlement.amountPaise),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete settlement',
+                onPressed: () => onDelete(settlement),
+              ),
+            ],
           ),
         );
       },
