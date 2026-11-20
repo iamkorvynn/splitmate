@@ -88,4 +88,33 @@ void main() {
       expect(copy.shares, {1: 5000, 2: 5000});
     });
   });
+
+  group('Settlement', () {
+    test('toMap/fromMap round-trips', () {
+      const settlement = Settlement(
+        id: 9,
+        groupId: 1,
+        fromMemberId: 2,
+        toMemberId: 1,
+        amountPaise: 10000,
+        createdAtMillis: 1700000000000,
+      );
+      final restored = Settlement.fromMap(settlement.toMap());
+      expect(restored.id, 9);
+      expect(restored.fromMemberId, 2);
+      expect(restored.toMemberId, 1);
+      expect(restored.amountPaise, 10000);
+    });
+
+    test('SuggestedPayment holds the payment triple', () {
+      const payment = SuggestedPayment(
+        fromMemberId: 2,
+        toMemberId: 1,
+        amountPaise: 4500,
+      );
+      expect(payment.fromMemberId, 2);
+      expect(payment.toMemberId, 1);
+      expect(payment.amountPaise, 4500);
+    });
+  });
 }
