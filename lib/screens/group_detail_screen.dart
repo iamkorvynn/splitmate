@@ -26,6 +26,7 @@ class GroupDetailScreen extends StatefulWidget {
 }
 
 class _GroupDetailScreenState extends State<GroupDetailScreen> {
+  late Group _group;
   List<Member> _members = [];
   List<Expense> _expenses = [];
   List<Settlement> _settlements = [];
@@ -38,14 +39,15 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _group = widget.group;
     _loadAll();
   }
 
   Future<void> _loadAll() async {
     final db = DatabaseHelper.instance;
-    final members = await db.getMembers(widget.group.id!);
-    final expenses = await db.getExpenses(widget.group.id!);
-    final settlements = await db.getSettlements(widget.group.id!);
+    final members = await db.getMembers(_group.id!);
+    final expenses = await db.getExpenses(_group.id!);
+    final settlements = await db.getSettlements(_group.id!);
     if (!mounted) return;
     setState(() {
       _members = members;
@@ -61,11 +63,78 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         settlements: _settlements,
       );
 
+  Future<void> _showEditGroup() async {
+    final nameController = TextEditingController(text: _group.name);
+    final noteController = TextEditingController(text: _group.note ?? '');
+    final formKey = GlobalKey<FormState>();
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit group'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Group name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Enter a name'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: noteController,
+                decoration: const InputDecoration(
+                  labelText: 'Note (optional)',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.of(context).pop(true);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (saved == true) {
+      final updated = _group.copyWith(
+        name: nameController.text.trim(),
+        note: noteController.text.trim().isEmpty
+            ? null
+            : noteController.text.trim(),
+      );
+      await DatabaseHelper.instance.updateGroup(updated);
+      if (!mounted) return;
+      setState(() => _group = updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Group updated')),
+      );
+    }
+  }
+
   Future<void> _openAddExpense() async {
     final added = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => AddExpenseScreen(
-          group: widget.group,
+          group: _group,
           members: _members,
         ),
       ),
@@ -77,7 +146,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     final settled = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => SettleScreen(
-          group: widget.group,
+          group: _group,
           members: _members,
           balances: _balances,
         ),
@@ -161,7 +230,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     }
     await DatabaseHelper.instance.insertMember(
       Member(
-        groupId: widget.group.id!,
+        groupId: _group.id!,
         name: name,
         createdAtMillis: DateTime.now().millisecondsSinceEpoch,
       ),
@@ -219,8 +288,13 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.group.name),
+          title: Text(_group.name),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit group',
+              onPressed: _showEditGroup,
+            ),
             IconButton(
               icon: const Icon(Icons.person_add),
               tooltip: 'Add member',
