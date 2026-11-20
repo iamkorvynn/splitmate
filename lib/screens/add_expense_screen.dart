@@ -55,12 +55,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
   int? get _amountPaise => parseRupeesToPaise(_amountController.text);
 
-  List<int> get _equalShares {
-    final amount = _amountPaise ?? 0;
-    final ids = _splitAmong.toList();
-    return splitEqually(amount, ids.length);
-  }
-
   String? _validateCustomShares() {
     final amount = _amountPaise;
     if (amount == null) return 'Enter a valid amount first';

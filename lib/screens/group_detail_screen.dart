@@ -362,7 +362,7 @@ class _ExpensesTab extends StatelessWidget {
     }
     return ListView.separated(
       itemCount: expenses.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final expense = expenses[index];
         return ExpenseTile(
@@ -488,7 +488,7 @@ class _SettlementsTab extends StatelessWidget {
     }
     return ListView.separated(
       itemCount: settlements.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final settlement = settlements[index];
         final date = DateTime.fromMillisecondsSinceEpoch(
