@@ -52,7 +52,9 @@ void main() {
     await tester.tap(find.text('Create your first group'));
     await pumpSettled(tester);
 
-    expect(find.text('New group'), findsOneWidget);
+    // "New group" matches both the new screen's AppBar and the home
+    // screen's FAB underneath the route transition.
+    expect(find.text('New group'), findsWidgets);
     expect(find.text('Group name'), findsOneWidget);
     expect(find.text('Members'), findsOneWidget);
   });
