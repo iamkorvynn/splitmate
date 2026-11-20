@@ -62,8 +62,16 @@ void main() {
   testWidgets('full flow: expense splits and balances show', (tester) async {
     await createGroup(tester);
 
-    // Open the group.
+    // Open the group and wait for its data to load (empty state proves it).
     await tester.tap(find.text('Goa Trip'));
+    for (var i = 0;
+        i < 10 && find.text('No expenses yet').evaluate().isEmpty;
+        i++) {
+      await tester.runAsync(
+        () => Future.delayed(const Duration(milliseconds: 500)),
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+    }
     await _settle(tester);
     expect(find.text('Expenses'), findsOneWidget);
 
