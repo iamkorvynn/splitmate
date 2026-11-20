@@ -76,7 +76,7 @@ void main() {
     expect(find.text('Expenses'), findsOneWidget);
 
     // Add a ₹300 expense paid by Asha, split equally among all three.
-    await tester.tap(find.text('Add expense'));
+    await tester.tap(find.byType(FloatingActionButton));
     await _settle(tester);
     await tester.enterText(find.byType(TextFormField).first, 'Dinner');
     await tester.enterText(find.byType(TextFormField).last, '300');
