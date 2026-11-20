@@ -142,6 +142,49 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     if (added == true) _loadAll();
   }
 
+  Future<void> _settleAll() async {
+    final suggestions = BalanceCalculator.simplifyDebts(_balances);
+    if (suggestions.isEmpty) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Settle all balances?'),
+        content: Text(
+          '${suggestions.length} payment(s) will be recorded to settle '
+          'everyone up in this group.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Settle all'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final payment in suggestions) {
+      await DatabaseHelper.instance.insertSettlement(
+        Settlement(
+          groupId: _group.id!,
+          fromMemberId: payment.fromMemberId,
+          toMemberId: payment.toMemberId,
+          amountPaise: payment.amountPaise,
+          createdAtMillis: now,
+        ),
+      );
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All settled up!')),
+    );
+    _loadAll();
+  }
+
   Future<void> _openSettle() async {
     final settled = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -334,6 +377,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           balances: _balances,
                           onRemoveMember: _removeMember,
                           onSettle: _openSettle,
+                          onSettleAll: _settleAll,
                         ),
                         _SettlementsTab(
                           settlements: _settlements,
