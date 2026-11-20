@@ -330,6 +330,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         ),
                         _BalancesTab(
                           members: _members,
+                          expenses: _expenses,
                           balances: _balances,
                           onRemoveMember: _removeMember,
                           onSettle: _openSettle,
@@ -465,12 +466,14 @@ class _ExpensesTab extends StatelessWidget {
 
 class _BalancesTab extends StatelessWidget {
   final List<Member> members;
+  final List<Expense> expenses;
   final Map<int, int> balances;
   final void Function(Member) onRemoveMember;
   final VoidCallback onSettle;
 
   const _BalancesTab({
     required this.members,
+    required this.expenses,
     required this.balances,
     required this.onRemoveMember,
     required this.onSettle,
@@ -480,6 +483,16 @@ class _BalancesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     if (members.isEmpty) {
       return const Center(child: Text('No members in this group yet.'));
+    }
+    final paidTotals = <int, int>{for (final m in members) m.id!: 0};
+    final shareTotals = <int, int>{for (final m in members) m.id!: 0};
+    for (final expense in expenses) {
+      paidTotals[expense.paidByMemberId] =
+          (paidTotals[expense.paidByMemberId] ?? 0) + expense.amountPaise;
+      for (final entry in expense.shares.entries) {
+        shareTotals[entry.key] =
+            (shareTotals[entry.key] ?? 0) + entry.value;
+      }
     }
     final suggestions = BalanceCalculator.simplifyDebts(balances);
     final allSettled = balances.values.every((b) => b == 0);
@@ -491,6 +504,10 @@ class _BalancesTab extends StatelessWidget {
             child: ListTile(
               leading: MemberAvatar(name: member.name),
               title: Text(member.name),
+              subtitle: Text(
+                'paid ${formatPaise(paidTotals[member.id] ?? 0)} • '
+                'share ${formatPaise(shareTotals[member.id] ?? 0)}',
+              ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
