@@ -17,14 +17,22 @@ class DatabaseHelper {
 
   Database? _db;
 
+  /// Single-flight future so concurrent first calls share one open.
+  /// Without this, two callers racing the first open would each create
+  /// their own connection — and for an in-memory database those are two
+  /// different, empty databases.
+  Future<Database>? _dbFuture;
+
   /// Test seam: lets tests point the helper at an in-memory database.
   String Function()? testPathOverride;
 
-  Future<Database> get database async {
+  Future<Database> get database {
     final existing = _db;
-    if (existing != null) return existing;
-    _db = await _open();
-    return _db!;
+    if (existing != null) return Future.value(existing);
+    return _dbFuture ??= _open().then((db) {
+      _db = db;
+      return db;
+    });
   }
 
   Future<Database> _open() async {
@@ -87,6 +95,7 @@ class DatabaseHelper {
   }
 
   Future<void> close() async {
+    _dbFuture = null;
     await _db?.close();
     _db = null;
   }
