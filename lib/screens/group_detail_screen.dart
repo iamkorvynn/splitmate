@@ -45,16 +45,23 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
   Future<void> _loadAll() async {
     final db = DatabaseHelper.instance;
-    final members = await db.getMembers(_group.id!);
-    final expenses = await db.getExpenses(_group.id!);
-    final settlements = await db.getSettlements(_group.id!);
-    if (!mounted) return;
-    setState(() {
-      _members = members;
-      _expenses = expenses;
-      _settlements = settlements;
-      _loading = false;
-    });
+    try {
+      final members = await db.getMembers(_group.id!);
+      final expenses = await db.getExpenses(_group.id!);
+      final settlements = await db.getSettlements(_group.id!);
+      if (!mounted) return;
+      setState(() {
+        _members = members;
+        _expenses = expenses;
+        _settlements = settlements;
+        _loading = false;
+      });
+    } catch (e) {
+      // A database error (e.g. closed mid-load) must not crash the screen.
+      debugPrint('SplitMate: failed to load group data: $e');
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
   }
 
   Map<int, int> get _balances => BalanceCalculator.computeBalances(
