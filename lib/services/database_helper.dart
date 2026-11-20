@@ -29,12 +29,8 @@ class DatabaseHelper {
   Future<Database> get database {
     final existing = _db;
     if (existing != null) return Future.value(existing);
-    // ignore: avoid_print
-    print('DBHELPER: opening database (override=${testPathOverride != null})');
     return _dbFuture ??= _open().then((db) {
       _db = db;
-      // ignore: avoid_print
-      print('DBHELPER: opened $db');
       return db;
     });
   }
@@ -99,8 +95,6 @@ class DatabaseHelper {
   }
 
   Future<void> close() async {
-    // ignore: avoid_print
-    print('DBHELPER: close() called, _db=$_db');
     _dbFuture = null;
     await _db?.close();
     _db = null;
