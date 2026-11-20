@@ -21,9 +21,23 @@ void main() {
     DatabaseHelper.instance.testPathOverride = null;
   });
 
-  testWidgets('home shows empty state with no groups', (tester) async {
+  // The home screen shows a CircularProgressIndicator while the local
+  // database loads, and that spinner animates forever, so pumpAndSettle
+  // would never return. Pump with explicit durations instead.
+  Future<void> pumpHome(WidgetTester tester) async {
     await tester.pumpWidget(const SplitMateApp());
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+  }
+
+  Future<void> pumpSettled(WidgetTester tester) async {
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+  }
+
+  testWidgets('home shows empty state with no groups', (tester) async {
+    await pumpHome(tester);
 
     expect(find.text('SplitMate'), findsOneWidget);
     expect(find.text('No groups yet'), findsOneWidget);
@@ -31,11 +45,10 @@ void main() {
   });
 
   testWidgets('tapping create opens the add-group screen', (tester) async {
-    await tester.pumpWidget(const SplitMateApp());
-    await tester.pumpAndSettle();
+    await pumpHome(tester);
 
     await tester.tap(find.text('Create your first group'));
-    await tester.pumpAndSettle();
+    await pumpSettled(tester);
 
     expect(find.text('New group'), findsOneWidget);
     expect(find.text('Group name'), findsOneWidget);
@@ -43,11 +56,10 @@ void main() {
   });
 
   testWidgets('creating a group shows it on the home screen', (tester) async {
-    await tester.pumpWidget(const SplitMateApp());
-    await tester.pumpAndSettle();
+    await pumpHome(tester);
 
     await tester.tap(find.text('Create your first group'));
-    await tester.pumpAndSettle();
+    await pumpSettled(tester);
 
     await tester.enterText(find.byType(TextFormField).first, 'Goa Trip');
     await tester.enterText(find.byType(TextField).last, 'Asha');
@@ -59,7 +71,7 @@ void main() {
     await tester.pump();
 
     await tester.tap(find.text('Create group'));
-    await tester.pumpAndSettle();
+    await pumpSettled(tester);
 
     expect(find.text('Goa Trip'), findsOneWidget);
     expect(find.text('No groups yet'), findsNothing);
