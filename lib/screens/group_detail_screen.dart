@@ -8,6 +8,7 @@ import '../services/balance_calculator.dart';
 import '../services/database_helper.dart';
 import '../utils/money.dart';
 import '../widgets/balance_chip.dart';
+import '../widgets/expense_detail_sheet.dart';
 import '../widgets/expense_tile.dart';
 import '../widgets/member_avatar.dart';
 import 'add_expense_screen.dart';
@@ -83,6 +84,15 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       ),
     );
     if (settled == true) _loadAll();
+  }
+
+  Future<void> _showExpenseDetail(Expense expense) async {
+    await ExpenseDetailSheet.show(
+      context,
+      expense: expense,
+      payerName: _memberNames[expense.paidByMemberId] ?? 'Unknown',
+      memberNames: _memberNames,
+    );
   }
 
   Future<void> _deleteExpense(Expense expense) async {
@@ -241,6 +251,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           expenses: _expenses,
                           memberNames: _memberNames,
                           onDelete: _deleteExpense,
+                          onTap: _showExpenseDetail,
                           onAdd: _openAddExpense,
                         ),
                         _BalancesTab(
@@ -315,12 +326,14 @@ class _ExpensesTab extends StatelessWidget {
   final List<Expense> expenses;
   final Map<int, String> memberNames;
   final void Function(Expense) onDelete;
+  final void Function(Expense) onTap;
   final VoidCallback onAdd;
 
   const _ExpensesTab({
     required this.expenses,
     required this.memberNames,
     required this.onDelete,
+    required this.onTap,
     required this.onAdd,
   });
 
@@ -369,6 +382,7 @@ class _ExpensesTab extends StatelessWidget {
           expense: expense,
           payerName: memberNames[expense.paidByMemberId] ?? 'Unknown',
           onDelete: () => onDelete(expense),
+          onTap: () => onTap(expense),
         );
       },
     );
