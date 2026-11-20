@@ -27,6 +27,17 @@ Future<void> _waitForPop(WidgetTester tester, Type type) async {
   await _settle(tester);
 }
 
+/// Polls until [finder] matches something, giving slow navigation and
+/// DB work time to finish even when the VM is loaded.
+Future<void> _waitForVisible(WidgetTester tester, Finder finder) async {
+  for (var i = 0; i < 20 && finder.evaluate().isEmpty; i++) {
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 500)),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+}
+
 /// Polls until [check] is true (via real async), giving slow DB work
 /// time to finish even when the VM is loaded.
 Future<void> _waitFor(
@@ -63,7 +74,7 @@ void main() {
     await tester.pumpWidget(const SplitMateApp());
     await _settle(tester);
     await tester.tap(find.text('Create your first group'));
-    await _settle(tester);
+    await _waitForVisible(tester, find.text('Group name'));
     await tester.enterText(find.byType(TextFormField).first, name);
     for (final member in members) {
       await tester.enterText(find.byType(TextField).last, member);
@@ -108,7 +119,7 @@ void main() {
 
   Future<void> openGroup(WidgetTester tester) async {
     await tester.pumpWidget(const SplitMateApp());
-    await _settle(tester);
+    await _waitForVisible(tester, find.text('Goa Trip'));
     await tester.tap(find.text('Goa Trip'));
     await _waitFor(
       tester,
@@ -135,7 +146,7 @@ void main() {
     await _settle(tester);
 
     await tester.tap(find.byType(FloatingActionButton));
-    await _settle(tester);
+    await _waitForVisible(tester, find.text('What was it for?'));
     await tester.enterText(find.byType(TextFormField).first, 'Dinner');
     await tester.enterText(find.byType(TextFormField).last, '300');
     await tester.tap(find.text('Save expense'));
