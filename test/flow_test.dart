@@ -72,6 +72,8 @@ void main() {
     await _settle(tester);
     await tester.enterText(find.byType(TextFormField).first, 'Dinner');
     await tester.enterText(find.byType(TextFormField).last, '300');
+    await tester.ensureVisible(find.text('Save expense'));
+    await tester.pump();
     await tester.tap(find.text('Save expense'));
     await _settle(tester);
 
