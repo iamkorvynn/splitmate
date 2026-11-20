@@ -514,6 +514,7 @@ class _BalancesTab extends StatelessWidget {
   final Map<int, int> balances;
   final void Function(Member) onRemoveMember;
   final VoidCallback onSettle;
+  final VoidCallback onSettleAll;
 
   const _BalancesTab({
     required this.members,
@@ -521,6 +522,7 @@ class _BalancesTab extends StatelessWidget {
     required this.balances,
     required this.onRemoveMember,
     required this.onSettle,
+    required this.onSettleAll,
   });
 
   @override
@@ -605,6 +607,12 @@ class _BalancesTab extends StatelessWidget {
             onPressed: onSettle,
             icon: const Icon(Icons.handshake),
             label: const Text('Record a settle-up'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: onSettleAll,
+            icon: const Icon(Icons.done_all),
+            label: const Text('Settle all at once'),
           ),
         ],
       ],
